@@ -1,35 +1,48 @@
-#Query principal 
-SELECT
-        p.pro_id AS ProId,
-        to_char(p.pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data,
-        CASE t.tpr_id
-            WHEN 118 THEN 'Pedido de Informação'
-            WHEN 119 THEN 'Recurso'
-        END AS Tipo,
-        p.pro_codigo AS CodigoPedido,
-        spl.codigo_proposicao(p.pro_id_alvo) AS CodigoRecurso,
-        html2text(p.pro_sumula) AS Assunto,
-        html2text(p.pro_texto) AS Texto,
-        to_char(p.pro_ultimo_tramite, 'DD/MM/YYYY HH24:MI') AS DataEncerramento,
-        e.est_nome AS Situação,
-        '' AS ArquivoAnexo
-    FROM spl.proposicao p
-        JOIN spl.tipo_proposicao t ON 
-            p.tpr_id = t.tpr_id
-        JOIN spl.estado e USING (est_id)
-    WHERE p.tpr_id IN (118, 119)
-        AND pro_ano={}
-        AND e.est_id BETWEEN 54 AND 59
-    ORDER BY Data DESC limit 2 .format(data):
 
-SELECT * FROM spl.arquivo CROSS JOIN spl.proposicao limit 200
-
-SELECT * FROM spl.arquivo limit 200
-
+"""LEFT JOIN """
 SELECT * FROM spl.arquivo
 LEFT JOIN spl.proposicao
-ON spl.arquivo.pro_id = spl.proposicao.pro_id
-WHERE spl.proposicao.pro_ano=2018 limit 200
+ON spl.arquivo.pro_id = spl.proposicao.pro_id 
+WHERE spl.proposicao.pro_id=5 spl.arquivo.pro_id=5
 
-SELECT * FROM spl.proposicao
-WHERE pro_ano=2018
+"""RIGHT JOIN"""
+SELECT pro_ultimo_tramite AS Data_Encerramento 
+FROM spl.arquivo
+RIGHT JOIN spl.proposicao
+ON spl.arquivo.pro_id = spl.proposicao.pro_id
+WHERE pro_ano=2019
+
+"""Extrair arquivos anexos"""
+SELECT arq_nome, arq_tipo, to_char(pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data
+FROM spl.arquivo
+CROSS JOIN spl.proposicao
+WHERE spl.proposicao.pro_ano=2019 limit 2000
+
+"""Extrair somente pedidos \ recursos conclúidos"""
+SELECT
+p.pro_id AS ProId,
+to_char(p.pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data,
+CASE t.tpr_id
+    WHEN 118 THEN 'Pedido de Informação'
+    WHEN 119 THEN 'Recurso'
+END AS Tipo,
+p.pro_codigo AS CodigoPedido,
+spl.codigo_proposicao(p.pro_id_alvo) AS CodigoRecurso,
+html2text(p.pro_sumula) AS Assunto,
+html2text(p.pro_texto) AS Texto,
+to_char(p.pro_ultimo_tramite, 'DD/MM/YYYY HH24:MI') AS DataEncerramento,
+e.est_nome AS Situação,
+'' AS ArquivoAnexo
+FROM spl.proposicao p
+JOIN spl.tipo_proposicao t ON 
+    p.tpr_id = t.tpr_id
+JOIN spl.estado e USING (est_id)
+WHERE p.tpr_id IN (118, 119)
+AND pro_ano=2018
+AND e.est_id BETWEEN 54 AND 59
+ORDER BY Data DESC limit 2 .format(data):
+
+SELECT * FROM spl.arquivo 
+CROSS JOIN spl.proposicao limit 200
+
+
