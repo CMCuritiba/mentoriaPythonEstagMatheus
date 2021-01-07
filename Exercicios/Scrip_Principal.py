@@ -8,6 +8,7 @@ import paramiko
 from scp import SCPClient
 import sys
 
+
 # CSV & execução da query
 """
 cur.execute(variavél)
@@ -63,31 +64,6 @@ def createSSHClient():
     sftp_client.close()
     ssh.close() 
 
-#Query Principal
-"""
-                    SELECT
-        p.pro_id AS ProId,
-        to_char(p.pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data,
-        CASE t.tpr_id
-            WHEN 118 THEN 'Pedido de Informação'
-            WHEN 119 THEN 'Recurso'
-        END AS Tipo,
-        p.pro_codigo AS CodigoPedido,
-        spl.codigo_proposicao(p.pro_id_alvo) AS CodigoRecurso,
-        html2text(p.pro_sumula) AS Assunto,
-        html2text(p.pro_texto) AS Texto,
-        to_char(p.pro_ultimo_tramite, 'DD/MM/YYYY HH24:MI') AS DataEncerramento,
-        e.est_nome AS Situação,
-        '' AS ArquivoAnexo
-    FROM spl.proposicao p
-        JOIN spl.tipo_proposicao t ON 
-            p.tpr_id = t.tpr_id
-        JOIN spl.estado e USING (est_id)
-    WHERE p.tpr_id IN (118, 119)
-        AND pro_ano={}
-        AND e.est_id BETWEEN 54 AND 59
-    ORDER BY Data DESC limit 2 .format(data):"""
-
 def main():
     
     header()   
@@ -101,9 +77,9 @@ def main():
 
         if arq == 1:
             
-            Aquery = """SELECT * FROM spl.arquivo
-                        LEFT JOIN spl.proposicao
-                        ON spl.arquivo.pro_id = spl.proposicao.pro_id
+            Aquery = """SELECT arq_nome, arq_tipo, pro_ultimo_tramite
+                        FROM spl.arquivo
+                        CROSS JOIN spl.proposicao
                         WHERE spl.proposicao.pro_ano={}""".format(date)
                     
             
@@ -112,11 +88,8 @@ def main():
                             
             with open('Arquivos.csv', 'w', newline="") as csv_file: 
                 arquivocsv = csv.writer(csv_file)    
-                arquivocsv.writerow(rows)      
-                                            
-            cur.close()       
-            con.close()
-            
+                arquivocsv.writerow(rows)                                
+                      
             proposicao()       
 
         elif arq == 2:
@@ -135,17 +108,37 @@ def main():
 
         if prop == 1:
             
-            Pquery = """"SELECT * FROM spl.proposicao limit 3""" 
+            Pquery = """SELECT
+                            p.pro_id AS ProId,
+                            to_char(p.pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data,
+                            CASE t.tpr_id
+                                WHEN 118 THEN 'Pedido de Informação'
+                                WHEN 119 THEN 'Recurso'
+                            END AS Tipo,
+                            p.pro_codigo AS CodigoPedido,
+                            spl.codigo_proposicao(p.pro_id_alvo) AS CodigoRecurso,
+                            html2text(p.pro_sumula) AS Assunto,
+                            html2text(p.pro_texto) AS Texto,
+                            to_char(p.pro_ultimo_tramite, 'DD/MM/YYYY HH24:MI') AS DataEncerramento,
+                            e.est_nome AS Situação,
+                            '' AS ArquivoAnexo
+                        FROM spl.proposicao p
+                            JOIN spl.tipo_proposicao t ON 
+                                p.tpr_id = t.tpr_id
+                            JOIN spl.estado e USING (est_id)
+                        WHERE p.tpr_id IN (118, 119)
+                            AND pro_ano={}
+                            AND e.est_id BETWEEN 54 AND 59
+                        ORDER BY Data DESC""" .format(date)
             
             cur.execute(Pquery)
             rows = cur.fetchall()                
                             
             with open('Proposicao.csv', 'w', newline="") as csv_file: 
                 arquivocsv = csv.writer(csv_file)    
-                arquivocsv.writerow(rows)      
-                                            
-            cur.close()       
-            con.close()
+                arquivocsv.writerow(rows)                                         
+        
+
             informacao()
 
         elif prop == 2:
@@ -171,11 +164,9 @@ def main():
                             
             with open('InformaçãoFinal.csv', 'w', newline="") as csv_file: 
                 arquivocsv = csv.writer(csv_file)    
-                arquivocsv.writerow(rows)            
-                                                
-            cur.close()       
-            con.close()
-
+                arquivocsv.writerow(rows)      
+                                            
+            
             print("FIM..")            
             main()
 
@@ -201,17 +192,7 @@ def main():
             return informacao()
             sleep(1)
 
-    arquivos()       
-        
-       
-            
-
-            
-                    
-        
-        
-    
-                  
+    arquivos()           
      
 
 if __name__ == "__main__":        
