@@ -1,22 +1,36 @@
-
 """LEFT JOIN """
 SELECT * FROM spl.arquivo
 LEFT JOIN spl.proposicao
 ON spl.arquivo.pro_id = spl.proposicao.pro_id 
-WHERE spl.proposicao.pro_id=5 spl.arquivo.pro_id=5
+WHERE spl.proposicao.pro_id = spl.arquivo.pro_id limit 100
 
 """RIGHT JOIN"""
-SELECT pro_ultimo_tramite AS Data_Encerramento 
+SELECT arq_nome AS Nome, arq_tipo AS Tipo, pro_ultimo_tramite AS Data_Encerramento 
 FROM spl.arquivo
 RIGHT JOIN spl.proposicao
 ON spl.arquivo.pro_id = spl.proposicao.pro_id
 WHERE pro_ano=2019
 
 """Extrair arquivos anexos"""
-SELECT arq_nome, arq_tipo, to_char(pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data
+SELECT 
+pro_id AS ID, pro_ pro_resposta_pmc,
+arq_nome AS NOME_ARQUIVO,
+pro_texto AS TEXTO, 
+pro_observacao AS OBSERVAÇÃO, pro_envio_protocolo AS ENVIO_PROTOCOLO,
+pro_protocolada AS PROTOCOLADA,
+(pro_ultimo_tramite, 'DD/MM/YYYY HH24:MI') AS DataEncerramento 
 FROM spl.arquivo
-CROSS JOIN spl.proposicao
-WHERE spl.proposicao.pro_ano=2019 limit 2000
+LEFT JOIN spl.proposicao
+ON spl.arquivo.pro_id = spl.proposicao.pro_id
+WHERE spl.proposicao.pro_ano=2019 
+
+"""
+SELECT arq_nome AS Nome, arq_tipo AS Tipo, pro_ultimo_tramite AS Data_Encerramento 
+FROM spl.arquivo
+RIGHT JOIN spl.proposicao
+ON spl.arquivo.pro_id = spl.proposicao.pro_id
+WHERE pro_ano=2019
+"""
 
 """Extrair somente pedidos \ recursos conclúidos"""
 SELECT
@@ -42,7 +56,9 @@ AND pro_ano=2018
 AND e.est_id BETWEEN 54 AND 59
 ORDER BY Data DESC limit 2 .format(data):
 
-SELECT * FROM spl.arquivo 
-CROSS JOIN spl.proposicao limit 200
+
+
+
+
 
 
