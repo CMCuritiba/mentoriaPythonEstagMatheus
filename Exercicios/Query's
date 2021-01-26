@@ -13,16 +13,17 @@ WHERE pro_ano=2019
 
 """Extrair arquivos anexos"""
 SELECT 
-pro_id AS ID, pro_ pro_resposta_pmc,
+sa.pro_id AS ID, pro_resposta_pmc,
 arq_nome AS NOME_ARQUIVO,
 pro_texto AS TEXTO, 
 pro_observacao AS OBSERVAÇÃO, pro_envio_protocolo AS ENVIO_PROTOCOLO,
 pro_protocolada AS PROTOCOLADA,
-(pro_ultimo_tramite, 'DD/MM/YYYY HH24:MI') AS DataEncerramento 
-FROM spl.arquivo
-LEFT JOIN spl.proposicao
-ON spl.arquivo.pro_id = spl.proposicao.pro_id
-WHERE spl.proposicao.pro_ano=2019 
+(pro_ultimo_tramite, 'DD/MM/YYYY') AS DataEncerramento 
+FROM spl.proposicao sp
+INNER JOIN spl.arquivo sa
+USING (pro_id)
+/*ON sa.pro_id = sp.pro_id*/
+WHERE sp.pro_ano=2018  AND sp.tpr_id IN (118, 119)
 
 """
 SELECT arq_nome AS Nome, arq_tipo AS Tipo, pro_ultimo_tramite AS Data_Encerramento 
@@ -54,11 +55,32 @@ JOIN spl.estado e USING (est_id)
 WHERE p.tpr_id IN (118, 119)
 AND pro_ano=2018
 AND e.est_id BETWEEN 54 AND 59
-ORDER BY Data DESC limit 2 .format(data):
+
+ORDER BY Data DESC 
+
+SELECT * FROM spl.arquivo
+LEFT JOIN spl.proposicao
+ON spl.arquivo.pro_id = spl.proposicao.pro_id
+WHERE pro_ano BETWEEN={} AND '2021'
+
+SELECT * FROM spl.informacao USING (pro_id)
+SELECT * FROM spl.arquivo
+SELECT * FROM spl.proposicao
+
+SELECT
+i.inf_id,
+i.inf_texto AS Informação_Texto,
+i.inf_data AS Informação_Data,
+p.pro_resposta_pmc AS Resposta
+FROM spl.informacao i
+INNER JOIN spl.proposicao p 
+USING (pro_id)
+WHERE pro_ano= 2019
 
 
 
 
 
+/*tpr.nome, tpr_id, 
 
 
