@@ -8,20 +8,6 @@ import paramiko
 from scp import SCPClient
 import sys
 
-# CSV & execução da query
-"""
-cur.execute(variavél)
-rows = cur.fetchall()                
-                
-with open('spl.proposicao.csv', 'w', newline="") as csv_file: 
-    arquivocsv = csv.writer(csv_file)    
-    arquivocsv.writerow(rows)            
-    
-                    
-    cur.close()       
-    con.close() 
-""" 
-
 def header():
     print("==================================================================================")
     print("== Script para gerar dados de pedidos do serviço de informação ao cidadão (SIC) ==")
@@ -30,31 +16,9 @@ def header():
 # Conecxão com o Banco
 con = psycopg2.connect (host = "cedro",
                         database = "pro",
-                        user = "mgnt2020",
-                        password = "camara")
+                        user = "mgnt2020",#.format(user),
+                        password = "camara")#.format(password))
 cur = con.cursor()
-"""
-def connectdb():
-
-    try:
-        print("- Digite seu usuário:")
-        user = input()
-        print("==================================================================================")
-        print("- Digite sua senha:")
-        password = input()
-        print("==================================================================================")
-
-
-        con = psycopg2.connect (host = "cedro",
-                            database = "pro",
-                            user = "{}".format(user),
-                            password = "{}".format(password))#.format(senha))
-        cur = con.cursor()
-    except ValueError:
-        print("- Senha e(ou usuários incorretos)")
-        connectdb()
-"""
-
 
 #Conexão SSH 
 def createSSHClient():
@@ -92,22 +56,23 @@ def main():
                 if arq == 1:
                     
                     Aquery = """SELECT 
-                                sa.pro_id AS ID, pro_resposta_pmc,
-                                html2text(arq_nome) AS NOME_ARQUIVO,
-                                html2text(pro_texto) AS TEXTO, 
-                                pro_observacao AS OBSERVAÇÃO, pro_envio_protocolo AS ENVIO_PROTOCOLO,
-                                pro_protocolada AS PROTOCOLADA,
-                                pro_ultimo_tramite AS Data_Encerramento 
+                                sa.arq_id AS ID_ARQUIVO,
+                                sp.pro_id AS ID_PROPOSICAO,
+                                inf_id AS ID_INFORMACAO,
+                                html2text(sa.arq_nome) AS NOME_ARQUIVO                                                                              
                                 FROM spl.proposicao sp
-                                INNER JOIN spl.arquivo sa
-                                USING (pro_id)                                
-                                WHERE sp.pro_ano={}  AND sp.tpr_id IN (118, 119)""".format(date)                            
+                                INNER JOIN spl.arquivo sa                                
+                                USING (pro_id)
+                                JOIN spl.estado se USING (est_id)                                       
+                                WHERE sp.pro_ano={}  
+                                AND sp.tpr_id IN (118, 119)
+                                AND se.est_id BETWEEN 54 AND 59""".format(date)                          
                     
                     cur.execute(Aquery)
                     rows = cur.fetchall()               
                                     
                     with open('Arquivos.csv', 'w', newline="") as csv_file: 
-                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='\n')    
+                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='|')    
                         arquivocsv.writerow(rows)                                
                             
                     proposicao()       
@@ -163,7 +128,7 @@ def main():
                     rows = cur.fetchall()                
                                     
                     with open('Proposicao.csv', 'w', newline="") as csv_file: 
-                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='\n')    
+                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='|')    
                         arquivocsv.writerow(rows)                                         
                 
 
@@ -180,7 +145,7 @@ def main():
             except ValueError:
                 print("==================================================================================")
                 print("Digite uma opção válida..")
-                proposicao()
+                
                 sleep(1)
 
                      
@@ -193,27 +158,13 @@ def main():
 
                 if inf == 1:
 
-                    Iquery ="""SELECT 
-                                i.inf_id,
-                                html2text(i.inf_texto) AS Informação_Texto,
-                                i.inf_data AS Informação_Data,
-                                p.pro_resposta_pmc AS Resposta
-                                FROM spl.informacao i
-                                INNER JOIN spl.proposicao p 
-                                JOIN spl.estado e USING (est_id)
-                                JOIN spl.tipo_proposicao t ON 
-                                    p.tpr_id = t.tpr_id
-                                USING (pro_id)
-                                WHERE pro_ano BETWEEN 2019 AND 2021
-                                AND p.tpr_id IN (118, 119)
-                                AND e.est_id BETWEEN 54 AND 59
-                                """        
+                    Iquery =""""""
                     
                     cur.execute(Iquery)
                     rows = cur.fetchall()                
                                     
                     with open('InformaçãoFinal.csv', 'w', newline="") as csv_file: 
-                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='\n')   
+                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='|')   
                         arquivocsv.writerow(rows)      
                                                     
                     
@@ -222,13 +173,25 @@ def main():
 
                 elif inf == 2:
                     
-                    Iquery2 = """SELECT * FROM spl.informacao limit 2"""        
+                    Iquery2 = """SELECT 
+                        i.inf_id,                        
+                        to_char(i.inf_data, 'DD/MM/YYYY HH24:MI') AS Informação_Data,
+                        html2text(i.inf_texto) AS Informação_Texto,
+                        FROM spl.informacao i
+                        INNER JOIN spl.proposicao p 
+                        JOIN spl.estado e USING (est_id)
+                        JOIN spl.tipo_proposicao t ON 
+                        p.tpr_id = t.tpr_id
+                        USING (pro_id)
+                        WHERE pro_ano= {}
+                        AND p.tpr_id IN (118, 119)
+                        AND e.est_id BETWEEN 54 AND 59""".format(date)           
                     
                     cur.execute(Iquery2)
                     rows = cur.fetchall()                
                                     
                     with open('Informação.csv', 'w', newline="") as csv_file: 
-                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='\n')     
+                        arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='|')    
                         arquivocsv.writerow(rows)            
                                                         
                     cur.close()       
@@ -258,4 +221,3 @@ def main():
 
 if __name__ == "__main__":   
     main()
-
