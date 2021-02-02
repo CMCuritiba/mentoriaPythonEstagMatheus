@@ -47,8 +47,8 @@ def main():
         date = int(input('- Digite a data desejada para extração: '))   
     
         def arquivos() -> None:
-            try:
-                print("==================================================================================")    
+            try: cur.close()       
+                    con.close()=======================")    
                 print(" - Extrair arquivos anexos ?\n1 - Sim\n2 - Não")
                 arq = int(input())
                 
@@ -173,19 +173,22 @@ def main():
 
                 elif inf == 2:
                     
-                    Iquery2 = """SELECT 
-                        i.inf_id,                        
-                        to_char(i.inf_data, 'DD/MM/YYYY HH24:MI') AS Informação_Data,
-                        html2text(i.inf_texto) AS Informação_Texto,
-                        FROM spl.informacao i
-                        INNER JOIN spl.proposicao p 
-                        JOIN spl.estado e USING (est_id)
-                        JOIN spl.tipo_proposicao t ON 
-                        p.tpr_id = t.tpr_id
-                        USING (pro_id)
-                        WHERE pro_ano= {}
-                        AND p.tpr_id IN (118, 119)
-                        AND e.est_id BETWEEN 54 AND 59""".format(date)           
+                    Iquery2 = """SELECT
+                                    p.pro_id, 
+                                    i.inf_id,                        
+                                    to_char(i.inf_data, 'DD/MM/YYYY HH24:MI') AS Informação_Data,
+                                    html2text(i.inf_texto) AS Informação_Texto,
+                                    html2text(p.pro_sumula) AS Assunto
+                                    FROM spl.informacao i
+                                    INNER JOIN spl.proposicao p 
+                                    JOIN spl.estado e USING (est_id)
+                                    JOIN spl.arquivo a USING(pro_id)
+                                    JOIN spl.tipo_proposicao t ON 
+                                    p.tpr_id = t.tpr_id
+                                    USING (pro_id)
+                                    WHERE pro_ano= {}
+                                    AND p.tpr_id IN (118, 119)
+                                    AND e.est_id BETWEEN 54 AND 59""".format(date)           
                     
                     cur.execute(Iquery2)
                     rows = cur.fetchall()                
@@ -194,8 +197,7 @@ def main():
                         arquivocsv = csv.writer(csv_file, delimiter='\n', quotechar='|')    
                         arquivocsv.writerow(rows)            
                                                         
-                    cur.close()       
-                    con.close()
+                   
                     
                     print("FIM..")
 
@@ -217,7 +219,8 @@ def main():
         main()
         sleep(1)  
              
-     
+    cur.close()       
+    con.close()
 
 if __name__ == "__main__":   
     main()
