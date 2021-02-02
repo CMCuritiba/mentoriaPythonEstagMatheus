@@ -36,6 +36,32 @@ WHERE pro_ano=2019
 """Extrair somente pedidos \ recursos conclúidos"""
 SELECT
 p.pro_id AS ProId,
+i.inf_id,
+to_char(p.pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data,
+CASE t.tpr_id
+    WHEN 118 THEN 'Pedido de Informação'
+    WHEN 119 THEN 'Recurso'
+END AS Tipo,
+p.pro_codigo AS CodigoPedido,
+spl.codigo_proposicao(p.pro_id_alvo) AS CodigoRecurso,
+html2text(p.pro_sumula) AS Assunto,
+html2text(p.pro_texto) AS Texto,
+to_char(p.pro_ultimo_tramite, 'DD/MM/YYYY HH24:MI') AS DataEncerramento,
+e.est_nome AS Situação,
+'' AS ArquivoAnexo
+INNER JOIN spl.informacao i
+FROM spl.proposicao p
+JOIN spl.tipo_proposicao t ON 
+    p.tpr_id = t.tpr_id
+JOIN spl.estado e USING (est_id)
+WHERE p.tpr_id IN (118, 119)
+AND pro_ano=2020
+AND e.est_id BETWEEN 54 AND 59
+
+ORDER BY Data DESC 
+
+SELECT 
+p.pro_id AS ProId,
 to_char(p.pro_protocolada, 'DD/MM/YYYY HH24:MI') AS Data,
 CASE t.tpr_id
     WHEN 118 THEN 'Pedido de Informação'
@@ -53,12 +79,10 @@ JOIN spl.tipo_proposicao t ON
     p.tpr_id = t.tpr_id
 JOIN spl.estado e USING (est_id)
 WHERE p.tpr_id IN (118, 119)
-AND pro_ano=2018
+AND pro_ano=2020
 AND e.est_id BETWEEN 54 AND 59
 
 ORDER BY Data DESC 
-
-SELECT * FROM spl.arquivo
 LEFT JOIN spl.proposicao
 ON spl.arquivo.pro_id = spl.proposicao.pro_id
 WHERE pro_ano BETWEEN={} AND '2021'
@@ -77,10 +101,62 @@ INNER JOIN spl.proposicao p
 USING (pro_id)
 WHERE pro_ano= 2019
 
+SELECT 
+i.inf_id,                        
+to_char(i.inf_data, 'DD/MM/YYYY HH24:MI') AS Informação_Data,
+html2text(i.inf_texto) AS Informação_Texto
+FROM spl.informacao i
+INNER JOIN spl.proposicao p 
+JOIN spl.estado e USING (est_id)
+JOIN spl.tipo_proposicao t ON 
+p.tpr_id = t.tpr_id
+USING (pro_id)
+WHERE pro_ano= 2020
+AND p.tpr_id IN (118, 119)
+AND e.est_id BETWEEN 54 AND 59
+
+SELECT
+i.inf_id,
+to_char(i.inf_data, 'DD/MM/YYYY HH24:MI') AS Informação_Data,
+html2text(i.inf_texto) AS Informação_Texto
+INNER JOIN spl.proposicao p USING (pro_id)
+JOIN spl.estado e USING (est_id)
+JOIN spl.tipo_proposicao t
+INNER JOIN spl.proposicao p USING (pro_id)
+JOIN spl.arquivo a USING (pro_id)
+WHERE pro_ano=2018
+AND p.tpr_id IN (118, 119)
+AND e.est_id BETWEEN 54 AND 59 
+
+"""Resposta final - Não"""
+SELECT
+p.pro_id, 
+i.inf_id,                        
+to_char(i.inf_data, 'DD/MM/YYYY HH24:MI') AS Informação_Data,
+html2text(i.inf_texto) AS Informação_Texto,
+html2text(p.pro_sumula) AS Assunto
+FROM spl.informacao i
+INNER JOIN spl.proposicao p 
+JOIN spl.estado e USING (est_id)
+JOIN spl.arquivo a USING(pro_id)
+JOIN spl.tipo_proposicao t ON 
+p.tpr_id = t.tpr_id
+USING (pro_id)
+WHERE pro_ano= 2020
+AND p.tpr_id IN (118, 119)
+AND e.est_id BETWEEN 54 AND 59
+
+"""Resposta final - Sim"""
+SELECT * FROM spl.informacao
+INNER JOIN spl.proposicao
+USING (pro_id)
+WHERE pro_ano=2020
+
+
+/*AND e.est_id BETWEEN 54 AND 59
+
 
 
 
 
 /*tpr.nome, tpr_id, 
-
-
