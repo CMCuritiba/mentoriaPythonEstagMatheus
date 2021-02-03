@@ -20,26 +20,6 @@ con = psycopg2.connect (host = "cedro",
                         password = "camara")#.format(password))
 cur = con.cursor()
 
-#Conexão SSH 
-def createSSHClient():
-    
-    host = "cedro,"
-    port = "5432"
-    username = "mgnt2020"
-    password = "camara"
-    
-    command = "ls"
-
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(host, port, username, password)
-    sftp_client=ssh.open_sftp()
-
-    sftp_client.get('/home/mgnt2020/Downloads/MyRepository-main/Python/Script/script_download.csv','script_downloaded_file.csv')
-
-    sftp_client.close()
-    ssh.close() 
-
 def main():
     
     header()
@@ -47,8 +27,8 @@ def main():
         date = int(input('- Digite a data desejada para extração: '))   
     
         def arquivos() -> None:
-            try: cur.close()       
-                    con.close()=======================")    
+            try: 
+                print("==================================================================================")   
                 print(" - Extrair arquivos anexos ?\n1 - Sim\n2 - Não")
                 arq = int(input())
                 
@@ -158,7 +138,21 @@ def main():
 
                 if inf == 1:
 
-                    Iquery =""""""
+                    Iquery ="""SELECT
+                                p.pro_id AS ID,
+                                i.inf_id AS ID_INFORMAÇÃO,
+                                i.inf_final AS INFORMAÇÃO_FINAL,
+                                to_char(p.pro_data_final, 'DD/MM/YYYY HH24:MI') AS DATA_FINAL
+                                FROM spl.informacao i
+                                INNER JOIN spl.proposicao p
+                                JOIN spl.estado e USING (est_id)
+                                JOIN spl.tipo_proposicao t ON 
+                                p.tpr_id = t.tpr_id
+                                USING (pro_id)
+                                WHERE pro_ano={}
+                                AND p.tpr_id IN (118, 119)
+                                AND e.est_id BETWEEN 54 AND 59
+                                """.format(date)
                     
                     cur.execute(Iquery)
                     rows = cur.fetchall()                
@@ -200,6 +194,8 @@ def main():
                    
                     
                     print("FIM..")
+
+                    main()
 
                 else:    
                     print("==================================================================================")
